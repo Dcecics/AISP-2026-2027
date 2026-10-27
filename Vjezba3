@@ -1,0 +1,432 @@
+Evo cijelog koda s ispravljenim greškama. Ostavio sam tvoju strukturu, nazive funkcija, izbornik i sve dijelove koji su već bili dobri. Promijenio sam samo ono što je potrebno za ispravan rad i sigurniji unos.
+
+c
+
+```
+
+#define _CRT_SECURE_NO_WARNINGS
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define USER_INPUT_EXIT -1
+#define USER_INPUT_PUSH_FRONT 1
+#define USER_INPUT_PUSH_BACK 2
+#define USER_INPUT_PRINT_LIST 3
+#define USER_INPUT_FIND_BY_LASTNAME 4
+#define USER_INPUT_DELETE_BY_SURNAME 5
+#define USER_INPUT_ADD_AFTER 6
+#define USER_INPUT_ADD_BEFORE 7
+#define USER_INPUT_PRINT_TO_FILE 8
+#define USER_INPUT_READ_FROM_FILE 9
+
+typedef struct Person person;
+typedef struct Person* position;
+
+struct Person {
+    char name[32];
+    char surname[32];
+    int birthYear;
+    position next;
+};
+
+int pushFront(position, char*, char*, int);
+int pushBack(position, char*, char*, int);
+int pushBefore(position, char*, char*, char*, int);
+int pushAfter(position, char*, char*, char*, int);
+int pushSorted(position, char*, char*, int);
+int deleteAll(position);
+void printListToConsole(position);
+int printListToFile(position, char*);
+int readListFromFile(position, char*);
+void deleteNode(position);
+position findPreviousByLastName(position, char*);
+position findByLastName(position, char*);
+int deleteBySurname(position, char*);
+
+int main()
+{
+    person head;
+    head.next = NULL;
+
+    int isRunning = 1;
+    int choice = 0;
+    int result = 0;
+
+    char name[32] = "";
+    char surname[32] = "";
+    int birthYear = 0;
+    char target[32] = "";
+    char filename[50] = "";
+    position foundPerson = NULL;
+
+    while (isRunning) {
+        //print menu
+        printf("\nTo add element to front of the list...........press 1");
+        printf("\nTo add element to back of the list............press 2");
+        printf("\nTo print list.................................press 3");
+        printf("\nTo find element in list.......................press 4");
+        printf("\nTo delete element from list...................press 5");
+        printf("\nTo add element behind targeted last name......press 6");
+        printf("\nTo add element before targeted last name......press 7");
+        printf("\nTo print list into .txt file..................press 8");
+        printf("\nTo read list from .txt file...................press 9");
+        printf("\nTo exit program...............................press -1");
+        printf("\nInsert number: ");
+
+        if (scanf("%d", &choice) != 1) {
+            printf("Invalid input!\n");
+
+            int ch;
+            while ((ch = getchar()) != '\n' && ch != EOF) {
+            }
+
+            continue;
+        }
+
+        switch (choice) {
+        case USER_INPUT_PUSH_FRONT:
+            printf("Insert FirstName LastName YearOfBirth:");
+            if (scanf("%31s %31s %d", name, surname, &birthYear) != 3) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            result = pushFront(&head, name, surname, birthYear);
+            if (result == 0) {
+                printf("SUCCES!");
+            }
+            else if (result == -1) {
+                printf("ERROR!");
+                isRunning = 0;
+            }
+            break;
+
+        case USER_INPUT_PUSH_BACK:
+            printf("Insert FirstName LastName YearOfBirth:");
+            if (scanf("%31s %31s %d", name, surname, &birthYear) != 3) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            result = pushBack(&head, name, surname, birthYear);
+            if (result == 0) {
+                printf("SUCCES!");
+            }
+            else if (result == -1) {
+                printf("ERROR!");
+                isRunning = 0;
+            }
+            break;
+
+        case USER_INPUT_FIND_BY_LASTNAME:
+            printf("Insert LastName you want to find: ");
+            if (scanf("%31s", surname) != 1) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            foundPerson = findByLastName(head.next, surname);
+            if (foundPerson != NULL) {
+                printf("SUCCES!  Found: %s %s %d\n",
+                    foundPerson->name,
+                    foundPerson->surname,
+                    foundPerson->birthYear);
+            }
+            else {
+                printf("ERROR!  Person with that last name not found!\n");
+            }
+            break;
+
+        case USER_INPUT_DELETE_BY_SURNAME:
+            printf("Insert LastName of person you want to delete: ");
+            if (scanf("%31s", surname) != 1) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            result = deleteBySurname(&head, surname);
+            if (result == 0) {
+                printf("SUCCES!");
+            }
+            else {
+                printf("ERROR!");
+            }
+            break;
+
+        case USER_INPUT_ADD_AFTER:
+            printf("Insert last name of person after which you want to add element: ");
+            if (scanf("%31s", target) != 1) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            printf("Insert FirstName LastName YearOfBirth:");
+            if (scanf("%31s %31s %d", name, surname, &birthYear) != 3) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            result = pushAfter(&head, target, name, surname, birthYear);
+            if (result == 0) {
+                printf("SUCCES!");
+            }
+            else {
+                printf("ERROR!");
+            }
+            break;
+
+        case USER_INPUT_ADD_BEFORE:
+            printf("Insert last name of person before which you want to add element: ");
+            if (scanf("%31s", target) != 1) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            printf("Insert FirstName LastName YearOfBirth:");
+            if (scanf("%31s %31s %d", name, surname, &birthYear) != 3) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            result = pushBefore(&head, target, name, surname, birthYear);
+            if (result == 0) {
+                printf("SUCCES!");
+            }
+            else {
+                printf("ERROR!");
+            }
+            break;
+
+        case USER_INPUT_PRINT_TO_FILE:
+            printf("Insert filename (including .txt extension) in which you want to store list: ");
+            if (scanf("%49s", filename) != 1) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            result = printListToFile(&head, filename);
+            if (result == 0) {
+                printf("SUCCES!");
+            }
+            else {
+                printf("ERROR!");
+            }
+            break;
+
+        case USER_INPUT_READ_FROM_FILE:
+            printf("Insert filename (including .txt extension) you want to read: ");
+            if (scanf("%49s", filename) != 1) {
+                printf("ERROR!");
+                isRunning = 0;
+                break;
+            }
+
+            result = readListFromFile(&head, filename);
+            if (result == 0) {
+                printf("SUCCES!");
+            }
+            else {
+                printf("ERROR!");
+            }
+            break;
+
+        case USER_INPUT_PRINT_LIST:
+            printListToConsole(head.next);
+            break;
+
+        case USER_INPUT_EXIT:
+            isRunning = 0;
+            break;
+
+        default:
+            printf("\nInvalid choice!\n");
+            break;
+        }
+    }
+
+    //clean memory
+    deleteAll(&head);
+
+    return 0;
+}
+
+int pushFront(position head, char* name, char* surname, int birthYear) {
+    position newEl = (position)malloc(sizeof(person));
+    if (newEl == NULL) {
+        return -1;
+    }
+
+    //Init & Fill
+    strcpy(newEl->name, name);
+    strcpy(newEl->surname, surname);
+    newEl->birthYear = birthYear;
+    newEl->next = NULL;
+
+    newEl->next = head->next;
+    head->next = newEl;
+
+    return 0;
+}
+
+int pushBack(position p, char* name, char* surname, int birthYear) {
+    while (p->next != NULL) {
+        p = p->next;
+    }
+
+    return pushFront(p, name, surname, birthYear);
+}
+
+int pushBefore(position head, char* targetSurname, char* name, char* surname, int yearOfBirth) {
+    position previous = findPreviousByLastName(head, targetSurname);
+    if (previous == NULL) {
+        return 1;
+    }
+
+    return pushFront(previous, name, surname, yearOfBirth);
+}
+
+int pushAfter(position head, char* targetSurname, char* name, char* surname, int yearOfBirth) {
+    position target = findByLastName(head->next, targetSurname);
+    if (target == NULL) {
+        return 1;
+    }
+
+    return pushFront(target, name, surname, yearOfBirth);
+}
+
+int pushSorted(position p, char* name, char* surname, int yearOfBirth) {
+    while (p->next != NULL && strcmp(p->next->surname, surname) < 0) {
+        p = p->next;
+    }
+
+    return pushFront(p, name, surname, yearOfBirth);
+}
+
+int deleteAll(position head) {
+    while (head->next != NULL) {
+        deleteNode(head);
+    }
+
+    printf("Memory free!");
+    return 0;
+}
+
+void printListToConsole(position p) {
+    if (p == NULL) {
+        printf("\nBlank list!\n");
+        return;
+    }
+    else {
+        while (p != NULL) {
+            printf("%s\t%s\t%d\n", p->name, p->surname, p->birthYear);
+            p = p->next;
+        }
+    }
+}
+
+int printListToFile(position p, char* fileName) {
+    FILE* fp = fopen(fileName, "w");
+    if (fp == NULL) {
+        return -1;
+    }
+
+    p = p->next;
+
+    while (p != NULL) {
+        if (fprintf(fp, "%s\t%s\t%d\n",
+            p->name, p->surname, p->birthYear) < 0) {
+            fclose(fp);
+            return -1;
+        }
+
+        p = p->next;
+    }
+
+    if (fclose(fp) != 0) {
+        return -1;
+    }
+
+    return 0;
+}
+
+int readListFromFile(position p, char* fileName) {
+    FILE* fp = fopen(fileName, "r");
+    if (fp == NULL) {
+        return 1;
+    }
+
+    char fn[32] = "";
+    char ln[32] = "";
+    int yob = 0;
+    int result = 0;
+
+    while ((result = fscanf(fp, "%31s %31s %d", fn, ln, &yob)) == 3) {
+        result = pushSorted(p, fn, ln, yob);
+
+        if (result == -1) {
+            fclose(fp);
+            return -1;
+        }
+    }
+
+    if (!feof(fp)) {
+        fclose(fp);
+        return 1;
+    }
+
+    fclose(fp);
+    return 0;
+}
+
+void deleteNode(position previous) {
+    position t = previous->next;
+    if (t == NULL) {
+        return;
+    }
+
+    previous->next = t->next;
+    free(t);
+}
+
+position findPreviousByLastName(position p, char* surname) {
+    while (p->next != NULL &&
+        strcmp(p->next->surname, surname) != 0) {
+        p = p->next;
+    }
+
+    if (p->next == NULL) {
+        return NULL;
+    }
+
+    return p;
+}
+
+position findByLastName(position p, char* surname) {
+    while (p != NULL && strcmp(p->surname, surname) != 0) {
+        p = p->next;
+    }
+
+    return p;
+}
+
+int deleteBySurname(position p, char* surname) {
+    position previous = findPreviousByLastName(p, surname);
+    if (previous == NULL) {
+        return -1;
+    }
+
+    deleteNode(previous);
+
+    return 0;
+}
+```
