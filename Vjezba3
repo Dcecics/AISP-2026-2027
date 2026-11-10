@@ -1,8 +1,4 @@
-Evo cijelog koda s ispravljenim greškama. Ostavio sam tvoju strukturu, nazive funkcija, izbornik i sve dijelove koji su već bili dobri. Promijenio sam samo ono što je potrebno za ispravan rad i sigurniji unos.
 
-c
-
-```
 
 #define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
